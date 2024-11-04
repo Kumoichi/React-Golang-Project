@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Kumoichi/golang-react-todo/models"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
 	// 	"net/http"
-	// 	"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 	// "go.mongodb.org/mongo-driver/bson"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
 	// "go.mongodb.org/mongo-driver/mongo"
@@ -56,7 +58,6 @@ func createDBInstance() {
 }
 
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
-	//このヘッダーのキーがContent-Typeかもしれない
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	// このgetAllTasks関数どこから来てんねん
@@ -65,21 +66,49 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Contex-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	var task models.ToDoList
+	json.NewDecoder(r.Body).Decode(&task)
+	insertOneTask(task)
+	json.NewEncoder(w).Encode(task)
+}
+
+func TaskComplete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	params := mux.Vars(r)
+	TaskComplete(params["id"])
+	json.NewEncoder(w).Encode(params["id"])
+}
+
+func UndoTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func deleteAllTasks(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func TaskComplete() {
+func getAllTasks() {
 
 }
 
-func UndoTask() {
-
-}
-
-func DeleteTask() {
-
-}
-
-func deleteAllTasks() {
+func TaskComplete(task string) {
 
 }

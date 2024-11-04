@@ -1,4 +1,4 @@
-module github.com/akhil/react-golang-todo
+module github.com/Kumoichi/golang-react-todo
 
 go 1.22.2
 
