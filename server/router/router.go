@@ -1,7 +1,7 @@
 package router
 
 import (
-	// 	"golang-react-todo/middleware"
+	"github.com/Kumoichi/golang-react-todo/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -12,6 +12,6 @@ func Router() *mux.Router {
 	router.HandleFunc("/api/tasks/{id}", middleware.TaskComplete).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/api/undoTask/{id}", middleware.UndoTask).Methods("PUT", "OPTIONS")
 	router.HandleFunc("/api/deleteTask/{id}", middleware.DeleteTask).Methods("DELETE", "OPTIONS")
-	router.HandleFunc("/api/dleteAllTasks", middleware.deleteAllTasks).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/api/dleteAllTasks", middleware.DeleteAllTasks).Methods("DELETE", "OPTIONS")
 	return router
 }
