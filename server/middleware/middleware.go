@@ -9,18 +9,12 @@ import (
 	"os"
 
 	"github.com/Kumoichi/golang-react-todo/models"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	// 	"net/http"
-	"github.com/gorilla/mux"
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-	// "go.mongodb.org/mongo-driver/mongo"
-	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var collection *mongo.Collection
@@ -54,24 +48,38 @@ func createDBInstance() {
 	}
 
 	fmt.Println("connected to mongodb")
-
 	collection = client.Database(dbName).Collection(collName)
 	fmt.Println("collection instance created")
 }
 
+// CORS用のヘッダーを設定する関数
+func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000") // フロントエンドのURLを指定
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+}
+
+// CORS対応のミドルウェア関数
+func CORSMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setCORSHeaders(w, r)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// 以下に各エンドポイントのハンドラ関数を定義
 func GetAllTasks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// このgetAllTasks関数どこから来てんねん
+	setCORSHeaders(w, r)
 	payload := getAllTasks()
 	json.NewEncoder(w).Encode(payload)
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Contex-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	setCORSHeaders(w, r)
 	var task models.ToDoList
 	json.NewDecoder(r.Body).Decode(&task)
 	insertOneTask(task)
@@ -79,44 +87,32 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func TaskComplete(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+	setCORSHeaders(w, r)
 	params := mux.Vars(r)
 	taskComplete(params["id"])
 	json.NewEncoder(w).Encode(params["id"])
 }
 
 func UndoTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+	setCORSHeaders(w, r)
 	params := mux.Vars(r)
 	undoTask(params["id"])
 	json.NewEncoder(w).Encode(params["id"])
 }
 
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+	setCORSHeaders(w, r)
 	params := mux.Vars(r)
 	deleteOneTask(params["id"])
 }
 
 func DeleteAllTasks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORSHeaders(w, r)
 	count := deleteAllTasks()
 	json.NewEncoder(w).Encode(count)
 }
 
+// データベース操作に関する内部関数
 func getAllTasks() []primitive.M {
 	cur, err := collection.Find(context.Background(), bson.D{{}})
 	if err != nil {
@@ -160,7 +156,7 @@ func insertOneTask(task models.ToDoList) {
 func undoTask(task string) {
 	id, _ := primitive.ObjectIDFromHex(task)
 	filter := bson.M{"_id": id}
-	update := bson.M{"$set": bson.M{"status": true}}
+	update := bson.M{"$set": bson.M{"status": false}}
 	result, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Fatal(err)
