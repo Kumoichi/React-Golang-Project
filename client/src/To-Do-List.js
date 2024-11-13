@@ -33,7 +33,7 @@ class ToDoList extends Component {
 
       axios
         .post(
-          endpoint + '/api/task',
+          endpoint + '/api/tasks',
           { task },
           {
             headers: {
@@ -117,7 +117,7 @@ class ToDoList extends Component {
   updateTask = (id, status) => {
     axios
       .put(
-        endpoint + '/api/task/' + id,
+        endpoint + '/api/tasks/' + id,
         { status },
         {
           headers: {
